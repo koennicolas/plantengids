@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Plantengids Tuin</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,500;1,400;1,500&family=Figtree:wght@400;500;600&display=swap">
+<style>
+/* Layout: veldgids met vier tabs (Gids, Flashcards, Oefenen, Favorieten). Foto bovenaan elke kaart, eigenschappen eronder. */
+:root{
+  --bg:#f3f5f1; --surface:#ffffff; --fg:#1d2a22; --muted:#5b6b61; --line:#d9e0d8;
+  --accent:#2f6b4f; --accent-fg:#ffffff; --chip:#e6ece6; --heart:#c2415c;
+  --ok:#2b7a4b; --ok-bg:#e1f1e6; --bad:#b3372f; --bad-bg:#f7e3e0;
+  --f-blue:#7fa1d6; --f-green:#9bbd7a; --f-pink:#e69bb9; --f-purple:#a98ad0; --f-white:#e8e8e2; --f-yellow:#efd35a; --f-orange:#e8975a; --f-none:#b9c3bb;
+  --display:'Newsreader',Georgia,serif; --body:'Figtree',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#141b17; --surface:#1d2721; --fg:#e6ede7; --muted:#9fb0a5; --line:#2e3a32; --accent:#7fc4a0; --accent-fg:#10201a; --chip:#27332b; --heart:#ea7f98;
+  --ok:#7fd0a0; --ok-bg:#1b3527; --bad:#f09a92; --bad-bg:#3a2321;
+  --f-blue:#5d7fb5; --f-green:#6f9552; --f-pink:#b8708d; --f-purple:#8368ab; --f-white:#c9c9c2; --f-yellow:#c4a93a; --f-orange:#b97238; --f-none:#4a564e; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141b17; --surface:#1d2721; --fg:#e6ede7; --muted:#9fb0a5; --line:#2e3a32; --accent:#7fc4a0; --accent-fg:#10201a; --chip:#27332b; --heart:#ea7f98;
+  --ok:#7fd0a0; --ok-bg:#1b3527; --bad:#f09a92; --bad-bg:#3a2321;
+  --f-blue:#5d7fb5; --f-green:#6f9552; --f-pink:#b8708d; --f-purple:#8368ab; --f-white:#c9c9c2; --f-yellow:#c4a93a; --f-orange:#b97238; --f-none:#4a564e; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:15px;line-height:1.5;padding-inline:16px;padding-block:24px 56px}
+.wrap{max-width:1100px;margin:0 auto}
+h1{font-family:var(--display);font-weight:500;font-size:clamp(28px,5vw,40px);margin:0 0 14px;text-wrap:balance}
+button{font:inherit;color:inherit}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:18px;overflow-x:auto}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;cursor:pointer;color:var(--muted);font-weight:500;white-space:nowrap}
+.tab[aria-selected="true"]{color:var(--fg);border-bottom-color:var(--accent)}
+.bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+.bar input[type=search]{flex:1 1 220px;min-width:0;padding:10px 12px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--fg);font:inherit}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);background:var(--chip);font-size:13px;padding:6px 11px;border-radius:99px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.chip[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.tab:focus-visible,.chip:focus-visible,.btn:focus-visible,input:focus-visible,.opt:focus-visible,.heart:focus-visible,.fcard:focus-visible,.thumb:focus-visible,.dotb:focus-visible,.lbx:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--c,var(--f-none));border:1px solid rgba(0,0,0,.2);flex:none}
+h2{font-family:var(--display);font-weight:500;font-size:24px;margin:30px 0 12px;display:flex;align-items:center;gap:10px}
+h2 .dot{width:16px;height:16px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;flex-direction:column;min-width:0}
+.pic{position:relative;aspect-ratio:4/3;background:var(--chip);overflow:hidden}
+.pic img{width:100%;height:100%;object-fit:cover;display:block;cursor:zoom-in}
+.thumbs{display:flex;gap:6px;padding:8px 10px 0}
+.thumb{width:46px;height:46px;border-radius:4px;overflow:hidden;border:2px solid transparent;padding:0;cursor:pointer;background:var(--chip)}
+.thumb img{width:100%;height:100%;object-fit:cover;display:block}
+.thumb[aria-current="true"]{border-color:var(--accent)}
+.heart{position:absolute;top:8px;right:8px;width:38px;height:38px;border-radius:50%;border:0;background:rgba(255,255,255,.88);display:grid;place-items:center;cursor:pointer;color:#555}
+.heart svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
+.heart[aria-pressed="true"]{color:#c2415c}
+.heart[aria-pressed="true"] svg{fill:currentColor}
+.body{padding:14px;display:flex;flex-direction:column;gap:8px;min-width:0}
+.lat{font-family:var(--display);font-style:italic;font-weight:500;font-size:21px;line-height:1.2;margin:0;overflow-wrap:anywhere}
+.nl{color:var(--muted);margin:0;font-size:14px}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:3px 12px;font-size:14px}
+dt{color:var(--muted)} dd{margin:0;min-width:0;font-variant-numeric:tabular-nums}
+.tip{font-size:14px;border-top:1px solid var(--line);padding-top:8px;margin:0}
+.note{font-size:13px;color:var(--muted);margin:0}
+.warn{font-size:12px;color:var(--muted);font-style:italic;margin:0}
+.links{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.btn{display:inline-block;background:var(--accent);color:var(--accent-fg);text-decoration:none;font-size:14px;font-weight:600;padding:8px 14px;border-radius:6px;border:1px solid var(--accent);cursor:pointer}
+.btn.alt{background:transparent;color:var(--accent)}
+.btn.sm{font-size:13px;padding:5px 10px}
+.btn.ok{background:var(--ok);border-color:var(--ok);color:var(--bg)}
+.btn.no{background:transparent;color:var(--bad);border-color:var(--bad)}
+.empty{color:var(--muted);padding:28px 0;max-width:60ch}
+.foot{color:var(--muted);font-size:13px;margin-top:36px;max-width:70ch}
+.stage{max-width:560px;margin:0 auto;display:flex;flex-direction:column;gap:14px}
+.meta{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;color:var(--muted);font-size:14px;font-variant-numeric:tabular-nums}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.seg button{background:var(--surface);border:0;padding:6px 12px;cursor:pointer;font-size:13px}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-fg)}
+.opts{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.fcard{background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden;cursor:pointer;display:block}
+.fcard .pic{aspect-ratio:4/3}
+.fcard .pic img{cursor:pointer}
+.fcard .inner{padding:18px;display:flex;flex-direction:column;gap:10px}
+.hint{color:var(--muted);font-size:13px;text-align:center;margin:0}
+.big{font-family:var(--display);font-size:clamp(28px,6vw,38px);line-height:1.15;margin:0;text-align:center;text-wrap:balance}
+.big.i{font-style:italic}
+.dots{display:flex;justify-content:center;gap:8px;padding:10px 0 0}
+.dotb{width:12px;height:12px;border-radius:50%;border:1px solid var(--accent);background:transparent;padding:0;cursor:pointer}
+.dotb[aria-current="true"]{background:var(--accent)}
+.row{display:flex;gap:10px;flex-wrap:wrap;justify-content:center}
+.optlist{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media (max-width:520px){.optlist{grid-template-columns:1fr}}
+.opt{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:12px 14px;text-align:left;cursor:pointer;font-size:15px;min-width:0;overflow-wrap:anywhere}
+.opt.lat{font-style:italic;font-family:var(--display);font-size:18px}
+.opt:disabled{cursor:default}
+.opt.ok{border-color:var(--ok);background:var(--ok-bg)}
+.opt.bad{border-color:var(--bad);background:var(--bad-bg)}
+.fb{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.fb strong.g{color:var(--ok)} .fb strong.r{color:var(--bad)}
+#lb[hidden]{display:none}
+#lb{position:fixed;inset:0;background:rgba(10,15,12,.92);display:flex;align-items:center;justify-content:center;z-index:50;padding:16px}
+#lb img{max-width:100%;max-height:calc(100% - 40px);object-fit:contain}
+.lbx{position:absolute;background:rgba(255,255,255,.15);color:#fff;border:0;border-radius:50%;width:44px;height:44px;font-size:22px;cursor:pointer}
+.lbx.c{top:calc(12px + env(safe-area-inset-top,0px));right:12px}
+.lbx.p{left:12px;top:50%}.lbx.n{right:12px;top:50%}
+.lbcap{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));left:0;right:0;text-align:center;color:#e8efe9;font-size:14px}
+</style>
+
+<style>:root{color-scheme:light}body{margin:0;font-size:14px}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Plantengids Tuin</h1>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="filters"></div>
+  <div id="out"></div>
+  <p class="foot">Hoogtes, bloeitijden en notities komen uit je eigen lijst. Herkenningspunten en standplaats zijn algemene tuinkennis per soort; bij cultivars (namen tussen aanhalingstekens) kan het per variëteit verschillen. De foto's komen uit je eigen map.</p>
+</div>
+<div id="lb" hidden></div>
+
+<script>
+var COL={Blue:['Blauw','--f-blue'],Green:['Groen','--f-green'],Pink:['Roze','--f-pink'],Purple:['Paars','--f-purple'],White:['Wit','--f-white'],Yellow:['Geel','--f-yellow'],Orange:['Oranje','--f-orange'],Bulb:['Bollen en voorjaar','--f-none']};
+var P=[
+// lat, nl, kleur, bloei, hoogte, plek, herkenning, notitie, zoekterm, onzeker
+['Gentiana (gentiaan)','Gentiaan','Blue','Aug – okt','10–15 cm','Zon, steenachtig en droog, goed doorlatend','Laag, mat; diepblauwe trompetvormige bloemen met licht gestreepte keel, kleine donkergroene bladeren.','Heeft een rotsachtige / droge ondergrond nodig','Gentiana herfstbloeiend blauw',1],
+['Eryngium tripartitum','Kruisdistel','Blue','Jul – sep','50–75 cm','Volle zon, droge grond','Vertakte stengels met veel kleine staalblauwe bolletjes met smalle stekelige kraagblaadjes. Los, luchtig bouwsel.','Trekt bijen aan','Eryngium tripartitum',0],
+['Echium vulgare','Slangenkruid','Blue','Mei – sep','30–100 cm','Zon, arme droge grond','Ruw behaarde stengel met bruine stippen. Roze knoppen die blauw openen in schroefvormige trossen.','','Echium vulgare',0],
+['Schizachyrium scoparium','Prairiegras (little bluestem)','Green','Zomer, herfstkleur','60–120 cm','Zon, droog tot gemiddeld','Blauwgroen sierlijk gras dat in herfst koperrood kleurt; wollige zaadpluimen langs de halmen.','Meest actief in de zomer','Schizachyrium scoparium little bluestem',0],
+['Euphorbia (wolfsmelk)','Wolfsmelk','Green','Vroege lente – late zomer','±50 cm','Zon tot halfschaduw, goed doorlatend','Blauwgrijs tot zilverachtig blad, groenige schutbladen met lichtroze tint. Melkachtig sap (irriterend voor huid).','Mooi met lichtroze rozen. Naam in je lijst ("grassias silver") kon ik niet exact koppelen; de foto\'s komen mogelijk van twee verschillende planten.','Euphorbia silver wolfsmelk lichtroze',1],
+['Geranium \'Rosalie\'','Ooievaarsbek','Pink','Mei – okt','30–50 cm','Zon tot halfschaduw','Laag kussen van ingesneden blad; roze schotelbloemen met donkerder aders. Bloeit lang.','Let op: de foto\'s in je map tonen dubbele, rozetvormige bloemen zoals bij een Pelargonium (niet winterhard). Controleer of dit de bedoelde plant is.','Geranium Rosalie',0],
+['Sedum \'Matrona\' (Hylotelephium)','Hemelsleutel','Pink','Aug – okt','45–60 cm','Volle zon, droog','Vlezig grijsgroen blad met paarsrode stengels; platte roze schermen die in de herfst dieper kleuren.','','Sedum Matrona',0],
+['Stachys × rosea','Andoorn (roze)','Pink','Jun / jul','70–90 cm','Zon tot halfschaduw','Aarvormige bloemen in roze kransen op rechtopstaande stengels; gekarteld, licht behaard blad.','Naam onzeker','Stachys rosea roze',1],
+['Astrantia major','Zeeuws knoopje','Pink','Jun – aug','50–80 cm','Halfschaduw, vochtige grond','Kleine bloempjes in een kussentje met papierachtige kraagbladeren; handvormig ingesneden blad.','','Astrantia major',0],
+['Knautia arvensis','Beemdkroon','Pink','Jun – aug','60–100 cm','Zon, droge tot gemiddelde grond','Lila-roze kussenvormige bloemen op lange dunne stelen; ruw behaarde, ingesneden bladeren.','','Knautia arvensis beemdkroon',0],
+['Malva moschata','Muskuskaasjeskruid','Pink','Jun – sep','±60 cm','Zon, gewone grond','Zacht roze (soms wit) schaalbloemen met vijf blaadjes; fijn gedeeld blad met muskusgeur.','','Malva moschata',0],
+['Aquilegia vulgaris','Wilde akelei','Purple','(niet ingevuld)','(niet ingevuld)','Halfschaduw, humusrijk','Hangende bloemen met teruggekromde sporen; blauwgroen blad in drie lobben. Zaait zich uit.','Bloeitijd en hoogte staan niet in je lijst','Aquilegia vulgaris',0],
+['Digitalis purpurea','Vingerhoedskruid','Purple','Jun / jul','tot 180 cm','Halfschaduw, humusrijk','Hoge bloemtros met paarsroze vingerhoedvormige bloemen met stippen binnenin; wollige bladrozet. Giftig.','Tweejarig','Digitalis purpurea',0],
+['Salvia nemorosa \'Caradonna\'','Salie','Purple','Mei – aug','50–70 cm','Volle zon, droog','Donkerpaarse, bijna zwarte stelen met diep violetblauwe aren; aromatisch, gerimpeld blad.','Trekt bijen aan','Salvia Caradonna',0],
+['Nepeta × faassenii \'Walker\'s Low\'','Kattenkruid','Purple','Mei – aug','20–50 cm (afhankelijk van snoei)','Zon, doorlatend','Grijsgroen aromatisch blad, lavendelblauwe bloemaren; bossige, brede groeiwijze.','Katten zijn er dol op (catnip)','Nepeta Walker\'s Low',0],
+['Wisteria sinensis','Blauwe regen','Purple','Apr – jun','Klimmer','Zon, beschut; muur op het westen','Hangende trossen blauwpaarse vlinderbloemen, onevenveerd blad, houtige windende stam.','Prijs ±€27. Mogelijk voor de westmuur (genoeg zon)','Wisteria sinensis',0],
+['Phlomis samia','Brandkruid','Purple','Jun – aug','100–150 cm','Zon, droog tot gemiddeld','Grote hartvormige, wollige bladeren; kransen van roze-paarse lipbloemen langs de stengel.','','Phlomis samia',0],
+['Thalictrum delavayi','Chinese ruit','Purple','Jun – sep','100–150 cm','Halfschaduw, vochtig','Wolkachtige pluimen met lila sepalen en gele meeldraden; fijn, varenachtig blad.','','Thalictrum delavayi',0],
+['Campanula \'Sarastro\'','Klokjesbloem','Purple','Mei – sep (kan meermaals bloeien)','8–40 cm','Zon tot halfschaduw','Grote, hangende donkerpaarse klokken; matte rozet van langwerpig blad.','','Campanula Sarastro',0],
+['Lythrum salicaria','Grote kattenstaart','Purple','Jun – sep','60–100 cm','Zon, vochtige tot natte grond','Rechtopstaande aren met karmijn-paarse bloemen; smalle lancetvormige bladeren in kransen.','Trekt vlinders aan','Lythrum salicaria',0],
+['Lupinus','Lupine','Purple','Jun – aug','60–150 cm','Zon, zure tot neutrale grond','Rechte bloemtorens van vlinderbloemen; handvormig blad uit 5–15 smalle blaadjes.','','Lupinus bloem paars',0],
+['Echinacea purpurea','Zonnehoed','Purple','Jul – sep','Blad 30 cm, bloem 100 cm','Zon, gemiddelde grond','Roze-paarse hangende bloemblaadjes rond een oranjebruine stekelige kegel; ruw blad.','','Echinacea purpurea',0],
+['Oenothera lindheimeri (Gaura) \'Whirling Butterflies\'','Prachtkaars','White','Jul – okt','70–100 cm','Zon, doorlatend','Dunne wuivende stengels met witte, vlindervormige bloemen met roze randje.','Trekt vlinders aan','Gaura Whirling Butterflies',0],
+['Digitalis purpurea \'Alba\'','Wit vingerhoedskruid','White','Jun / jul','120–180 cm','Halfschaduw, humusrijk','Als gewoon vingerhoedskruid maar zuiver wit; bladrozet wollig. Giftig.','','Digitalis purpurea Alba',0],
+['Pycnanthemum muticum','Bergmunt','White','Jul – sep','70–100 cm','Zon, gemiddelde grond','Zilverkleurige schutbladen onder compacte hoofdjes met kleine witte bloempjes; sterke muntgeur.','Trekt bijen aan','Pycnanthemum muticum',0],
+['Convolvulus cneorum','Zilverwinde','White','Jun – sep','40–60 cm','Volle zon, droog, beschut','Zilverzijdig behaard blad; witte trechterbloemen met roze knoppen en gele keel.','Vorstgevoelig','Convolvulus cneorum',0],
+['Stachys byzantina','Ezelsoor','White','Jun / sep','10–15 cm','Zon, droog','Dikke, zilvergrijze fluweelzachte bladeren; woldragende bloemstengels met kleine paarse bloemetjes.','Trekt hommels aan','Stachys byzantina',0],
+['Primula veris','Sleutelbloem','Yellow','Mrt – mei','5–25 cm','Halfschaduw tot zon, vochtig','Rozet van gerimpeld blad; trossen overhangende gele klokjes met oranje vlekjes.','','Primula veris',0],
+['Achillea \'Terracotta\'','Duizendblad','Orange','Jun – sep','15–60 cm','Volle zon, droog','Platte schermen die van oranje naar terracotta en geel verkleuren; fijn geveerd blad.','','Achillea Terracotta',0],
+['Leucojum','Sneeuwvlokje','Bulb','','','Halfschaduw, vochtig','Bol met bandvormig blad; hangende witte klokjes met een groen puntje op elk blaadje.','Nog geen gegevens in je lijst','Leucojum sneeuwvlokje',0],
+['Crocus tommasinianus','Boerenkrokus','Bulb','','','Zon tot halfschaduw','Slanke lila krokusjes met zilverige buitenkant; verwildert makkelijk in gras.','Nog geen gegevens in je lijst','Crocus tommasinianus',0],
+['Narcissus','Narcis','Bulb','','','Zon tot halfschaduw','Gele (of witte) bloemen met trompet en bijkroon; smal bandvormig blad.','Nog geen gegevens in je lijst','Narcissus bloem',0],
+['Tulipa','Tulp','Bulb','','','Volle zon, goed doorlatend','Bekervormige bloem op één stengel, breed blauwgroen blad; veel kleuren en vormen.','Nog geen gegevens in je lijst','Tulipa tuin',0],
+['Viola odorata','Maarts viooltje','Bulb','','','Halfschaduw, humusrijk','Lage plant met hartvormig blad en donkerviolette geurende bloemen; vormt uitlopers.','Nog geen gegevens in je lijst','Viola odorata',0],
+['Helleborus foetidus','Stinkend nieskruid','Bulb','','','Halfschaduw, kalkrijk','Donkergroen, diep ingesneden blad; groene klokjes met paarse rand. Giftig.','Giftig','Helleborus foetidus',0]
+];
+var PHOTOS=[["p00-1.jpg", "p00-2.jpg", "p00-3.jpg", "p00-4.jpg"], ["p01-1.jpg", "p01-2.jpg"], ["p02-1.jpg", "p02-2.jpg"], ["p03-1.jpg", "p03-2.jpg"], ["p04-1.jpg", "p04-2.jpg"], ["p05-1.jpg", "p05-2.jpg"], ["p06-1.jpg", "p06-2.jpg"], ["p07-1.jpg", "p07-2.jpg"], ["p08-1.jpg", "p08-2.jpg"], ["p09-1.jpg", "p09-2.jpg"], ["p10-1.jpg", "p10-2.jpg"], ["p11-1.jpg", "p11-2.jpg"], ["p12-1.jpg", "p12-2.jpg"], ["p13-1.jpg", "p13-2.jpg"], ["p14-1.jpg", "p14-2.jpg"], ["p15-1.jpg", "p15-2.jpg"], ["p16-1.jpg", "p16-2.jpg"], ["p17-1.jpg", "p17-2.jpg"], ["p18-1.jpg", "p18-2.jpg"], ["p19-1.jpg", "p19-2.jpg"], ["p20-1.jpg", "p20-2.jpg"], ["p21-1.jpg", "p21-2.jpg"], ["p22-1.jpg", "p22-2.jpg"], ["p23-1.jpg", "p23-2.jpg"], ["p24-1.jpg", "p24-2.jpg"], ["p25-1.jpg", "p25-2.jpg"], ["p26-1.jpg", "p26-2.jpg"], ["p27-1.jpg", "p27-2.jpg"], ["p28-1.jpg", "p28-2.jpg"], ["p29-1.jpg", "p29-2.jpg"], ["p30-1.jpg", "p30-2.jpg"], ["p31-1.jpg", "p31-2.jpg"], ["p32-1.jpg", "p32-2.jpg"], ["p33-1.jpg", "p33-2.jpg"], ["p34-1.jpg", "p34-2.jpg"]];
+function slug(s){return s.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')}
+var PL=P.map(function(r,i){return {id:slug(r[0]),lat:r[0],short:r[0].replace(/\s*\([^)]*\)/,''),nl:r[1],col:r[2],bloom:r[3],height:r[4],plek:r[5],herk:r[6],note:r[7],q:r[8],unsure:r[9],ph:PHOTOS[i].map(function(f){return 'photos/'+f})}});
+var BYID={};PL.forEach(function(p){BYID[p.id]=p});
+
+function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+function lsGet(k){try{return JSON.parse(localStorage.getItem(k)||'{}')||{}}catch(e){return {}}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function $(id){return document.getElementById(id)}
+
+var S={view:'gids',c:'all',fav:false,q:'',
+  fc:{mode:'photo',unknown:false,deck:[],i:0,rev:false,ph:0,res:{},done:false,built:false},
+  qz:{mode:'nl',queue:[],cur:null,ans:null,right:0,total:0,streak:0}};
+var known=lsGet('known'), favLocal=lsGet('fav'), favDb={}, db=null, favNote='';
+
+/* ---------- favorieten (gedeeld via db, anders lokaal) ---------- */
+function isFav(id){return !!(favDb[id]||favLocal[id])}
+function favCount(){return PL.filter(function(p){return isFav(p.id)}).length}
+async function toggleFav(id){
+  var on=!isFav(id);
+  if(on){favDb[id]=1}else{delete favDb[id];delete favLocal[id];lsSet('fav',favLocal)}
+  render();
+  if(!db){ if(on){favLocal[id]=1;lsSet('fav',favLocal);delete favDb[id]} render(); return; }
+  try{
+    var ref=db.collection('favorites').doc(id);
+    if(on){await ref.set({on:true})}else{await ref.delete()}
+  }catch(e){
+    if(on){delete favDb[id];favLocal[id]=1;lsSet('fav',favLocal);favNote='Delen lukt nu niet; deze favoriet staat alleen op dit apparaat.'}
+    render();
+  }
+}
+(async function(){
+  try{
+    if(!window.claude||!window.claude.use)return;
+    db=await window.claude.use('db');
+    if(!db)return;
+    db.collection('favorites').onSnapshot(function(snap){
+      favDb={};snap.docs.forEach(function(d){favDb[d.id]=1});render();
+    },function(){db=null;render()});
+  }catch(e){db=null}
+})();
+
+/* ---------- hulpfuncties ---------- */
+function heart(p){var on=isFav(p.id);return '<button class="heart" data-act="fav" data-id="'+p.id+'" aria-pressed="'+on+'" aria-label="'+(on?'Verwijder uit favorieten':'Zet in favorieten')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-7.5-4.6-9.6-9.3C.9 8.2 3 4.5 6.6 4.5c2 0 3.5 1 5.4 3.1 1.9-2.1 3.4-3.1 5.4-3.1 3.6 0 5.7 3.7 4.2 7.2C19.5 16.4 12 21 12 21z"/></svg></button>'}
+function pool(){return PL.filter(function(p){return (S.c==='all'||p.col===S.c)&&(!S.fav||isFav(p.id))})}
+function info(p){
+  var r='';
+  if(p.bloom)r+='<dt>Bloei</dt><dd>'+esc(p.bloom)+'</dd>';
+  if(p.height)r+='<dt>Hoogte</dt><dd>'+esc(p.height)+'</dd>';
+  r+='<dt>Standplaats</dt><dd>'+esc(p.plek)+'</dd>';
+  return '<dl>'+r+'</dl><p class="tip"><strong>Herkennen:</strong> '+esc(p.herk)+'</p>'+(p.note?'<p class="note">'+esc(p.note)+'</p>':'')+(p.unsure?'<p class="warn">Naam onzeker</p>':'');
+}
+function card(p){
+  var th='';
+  if(p.ph.length>1){th='<div class="thumbs">'+p.ph.map(function(f,i){return '<button class="thumb" data-act="thumb" data-id="'+p.id+'" data-i="'+i+'" aria-current="'+(i===0)+'" aria-label="Foto '+(i+1)+'"><img src="'+f+'" alt="" loading="lazy"></button>'}).join('')+'</div>'}
+  return '<article class="card" style="--c:var('+COL[p.col][1]+')" id="c-'+p.id+'">'+
+   '<div class="pic"><img src="'+p.ph[0]+'" alt="'+esc(p.short)+'" data-act="zoom" data-id="'+p.id+'" data-i="0" loading="lazy">'+heart(p)+'</div>'+th+
+   '<div class="body"><h3 class="lat">'+esc(p.lat)+'</h3><p class="nl">'+esc(p.nl)+'</p>'+info(p)+
+   '<div class="links"><a class="btn alt sm" target="_blank" rel="noopener" href="https://www.google.com/search?tbm=isch&q='+encodeURIComponent(p.q+' plant')+'">Meer foto\'s</a><a class="btn alt sm" target="_blank" rel="noopener" href="https://nl.wikipedia.org/w/index.php?search='+encodeURIComponent(p.short.replace(/'/g,''))+'">Wikipedia</a></div></div></article>';
+}
+function grouped(list){
+  var h='';
+  Object.keys(COL).forEach(function(k){
+    var l=list.filter(function(p){return p.col===k});if(!l.length)return;
+    h+='<h2><span class="dot" style="--c:var('+COL[k][1]+')"></span>'+COL[k][0]+'</h2><div class="grid">'+l.map(card).join('')+'</div>';
+  });
+  return h;
+}
+
+/* ---------- tabs en filters ---------- */
+var TABS=[['gids','Gids'],['flash','Flashcards'],['quiz','Oefenen'],['favs','Favorieten']];
+function drawTabs(){
+  $('tabs').innerHTML=TABS.map(function(t){var n=t[0]==='favs'?' ('+favCount()+')':'';return '<button class="tab" role="tab" data-act="tab" data-v="'+t[0]+'" aria-selected="'+(S.view===t[0])+'">'+t[1]+n+'</button>'}).join('');
+}
+function drawFilters(){
+  if(S.view==='favs'){$('filters').innerHTML='';return}
+  var h='<div class="bar">';
+  if(S.view==='gids')h+='<input id="q" type="search" placeholder="Zoek op Nederlandse of Latijnse naam" aria-label="Zoeken" value="'+esc(S.q)+'">';
+  h+='<div class="chips"><button class="chip" data-act="col" data-c="all" aria-pressed="'+(S.c==='all')+'">Alle</button>';
+  Object.keys(COL).forEach(function(k){h+='<button class="chip" data-act="col" data-c="'+k+'" aria-pressed="'+(S.c===k)+'"><span class="dot" style="--c:var('+COL[k][1]+')"></span>'+COL[k][0]+'</button>'});
+  h+='<button class="chip" data-act="onlyfav" aria-pressed="'+S.fav+'">Alleen favorieten ('+favCount()+')</button></div></div>';
+  var old=$('filters');
+  var keep=document.activeElement&&document.activeElement.id==='q';
+  old.innerHTML=h;
+  if(keep){var q=$('q');q.focus();q.setSelectionRange(q.value.length,q.value.length)}
+}
+
+/* ---------- gids ---------- */
+function vGids(){
+  var q=S.q.toLowerCase();
+  var l=pool().filter(function(p){return !q||(p.lat+' '+p.nl).toLowerCase().indexOf(q)>-1});
+  return l.length?grouped(l):'<p class="empty">Geen planten gevonden. Probeer een andere naam of kleur'+(S.fav?', of zet "Alleen favorieten" uit.':'.')+'</p>';
+}
+function vFavs(){
+  var l=PL.filter(function(p){return isFav(p.id)});
+  var n=favNote?'<p class="note">'+esc(favNote)+'</p>':'';
+  var sh='<p class="note">'+(db?'Favorieten worden gedeeld met iedereen die deze pagina met bewerkrechten opent.':'Favorieten staan nu alleen op dit apparaat.')+'</p>';
+  if(!l.length)return '<p class="empty">Nog geen favorieten. Tik op het hartje rechtsboven een foto in de Gids om een plant hier te bewaren, bijvoorbeeld voor je lijstje bij het tuincentrum.</p>'+sh;
+  return sh+n+grouped(l);
+}
+
+/* ---------- flashcards ---------- */
+function buildDeck(){
+  var f=S.fc;
+  var l=pool().filter(function(p){return !f.unknown||!known[p.id]});
+  f.deck=shuffle(l).map(function(p){return p.id});f.i=0;f.rev=false;f.ph=0;f.res={};f.done=false;f.built=true;
+}
+function vFlash(){
+  var f=S.fc;if(!f.built)buildDeck();
+  var kn=PL.filter(function(p){return known[p.id]}).length;
+  var head='<div class="opts"><div class="seg" role="group" aria-label="Voorkant"><button data-act="fmode" data-m="photo" aria-pressed="'+(f.mode==='photo')+'">Foto → naam</button><button data-act="fmode" data-m="name" aria-pressed="'+(f.mode==='name')+'">Naam → foto</button></div>'+
+   '<button class="chip" data-act="funk" aria-pressed="'+f.unknown+'">Alleen wat ik nog niet ken</button><button class="chip" data-act="fshuf">Opnieuw schudden</button></div>';
+  if(!f.deck.length)return '<div class="stage">'+head+'<p class="empty">Geen kaarten in deze selectie.'+(f.unknown?' Je kent alles in deze selectie al.':'')+' Kies een andere kleur of zet een filter uit.</p></div>';
+  if(f.done){
+    var g=Object.keys(f.res).filter(function(k){return f.res[k]}).length,b=f.deck.length-g;
+    return '<div class="stage">'+head+'<div class="fb"><strong>Reeks klaar</strong><span>'+g+' gekend, '+b+' nog oefenen, van '+f.deck.length+' kaarten.</span><div class="row"><button class="btn" data-act="fshuf">Nog een keer</button>'+(b?'<button class="btn alt" data-act="fretry">Alleen de '+b+' om te oefenen</button>':'')+'</div></div></div>';
+  }
+  var p=BYID[f.deck[f.i]];
+  var meta='<div class="meta"><span>Kaart '+(f.i+1)+' van '+f.deck.length+'</span><span>Ken ik: '+kn+' van '+PL.length+'</span></div>';
+  var photoBlock=function(){
+    var dots=p.ph.length>1?'<div class="dots">'+p.ph.map(function(x,i){return '<button class="dotb" data-act="fph" data-i="'+i+'" aria-current="'+(i===f.ph)+'" aria-label="Foto '+(i+1)+'"></button>'}).join('')+'</div>':'';
+    return '<div class="pic"><img src="'+p.ph[f.ph]+'" alt="'+(f.rev?esc(p.short):'Plant om te herkennen')+'">'+'</div>'+dots;
+  };
+  var face;
+  if(!f.rev){
+    if(f.mode==='photo')face=photoBlock()+'<div class="inner"><p class="hint">Welke plant is dit? Tik om te draaien.</p></div>';
+    else face='<div class="inner" style="padding-block:44px"><p class="big">'+esc(p.nl)+'</p><p class="hint">Hoe ziet deze plant eruit? Tik om te draaien.</p></div>';
+  }else{
+    var names='<p class="big i">'+esc(p.short)+'</p><p class="nl" style="text-align:center;font-size:17px">'+esc(p.nl)+'</p>';
+    face=(f.mode==='photo'?'':photoBlock())+'<div class="inner">'+names+info(p)+'</div>';
+  }
+  var card='<div class="fcard" role="button" tabindex="0" data-act="flip" aria-label="Draai de kaart om" style="--c:var('+COL[p.col][1]+')">'+face+'</div>';
+  var acts=f.rev?'<div class="row"><button class="btn no" data-act="fno">Nog oefenen</button><button class="btn ok" data-act="fyes">Ken ik</button></div>':'<div class="row"><button class="btn alt" data-act="fprev"'+(f.i===0?' disabled':'')+'>Vorige</button><button class="btn" data-act="flip">Draai om</button><button class="btn alt" data-act="fnext">Overslaan</button></div>';
+  return '<div class="stage">'+head+meta+card+acts+'<p class="hint">Sneltoetsen: spatie draait, pijltjes bladeren.</p></div>';
+}
+function fAdvance(){var f=S.fc;f.rev=false;f.ph=0;if(f.i>=f.deck.length-1){f.done=true}else{f.i++}render()}
+
+/* ---------- oefenen ---------- */
+function label(p){return S.qz.mode==='nl'?p.nl:p.short}
+function nextQ(){
+  var z=S.qz,pl=pool();
+  z.ans=null;
+  if(!pl.length){z.cur=null;return}
+  var ids=pl.map(function(p){return p.id});
+  z.queue=z.queue.filter(function(id){return ids.indexOf(id)>-1});
+  if(!z.queue.length)z.queue=shuffle(ids);
+  var p=BYID[z.queue.shift()];
+  var same=shuffle(PL.filter(function(o){return o.id!==p.id&&o.col===p.col})),rest=shuffle(PL.filter(function(o){return o.id!==p.id&&o.col!==p.col}));
+  var opts=[],seen={};seen[label(p)]=1;
+  same.concat(rest).forEach(function(o){var l=label(o);if(opts.length<3&&!seen[l]){seen[l]=1;opts.push(o)}});
+  z.cur={id:p.id,ph:Math.floor(Math.random()*p.ph.length),opts:shuffle(opts.concat([p]).map(function(o){return o.id}))};
+}
+function vQuiz(){
+  var z=S.qz;if(!z.cur&&pool().length)nextQ();
+  var head='<div class="opts"><span class="hint" style="margin:0">Vraag naar</span><div class="seg" role="group" aria-label="Soort naam"><button data-act="qmode" data-m="nl" aria-pressed="'+(z.mode==='nl')+'">Nederlandse naam</button><button data-act="qmode" data-m="lat" aria-pressed="'+(z.mode==='lat')+'">Latijnse naam</button></div></div>';
+  if(!z.cur)return '<div class="stage">'+head+'<p class="empty">Geen planten in deze selectie. Kies een andere kleur'+(S.fav?' of zet "Alleen favorieten" uit, of voeg eerst favorieten toe.':'.')+'</p></div>';
+  var p=BYID[z.cur.id];
+  var meta='<div class="meta"><span>Goed: '+z.right+' van '+z.total+'</span><span>Reeks: '+z.streak+'</span></div>';
+  var pic='<div class="card"><div class="pic"><img src="'+p.ph[z.cur.ph]+'" alt="Plant om te herkennen" data-act="qzoom" data-i="'+z.cur.ph+'"></div></div>';
+  var opts='<div class="optlist">'+z.cur.opts.map(function(id){
+    var o=BYID[id],cls='opt'+(z.mode==='lat'?' lat':'');
+    if(z.ans){if(id===p.id)cls+=' ok';else if(id===z.ans)cls+=' bad'}
+    return '<button class="'+cls+'" data-act="ans" data-id="'+id+'"'+(z.ans?' disabled':'')+'>'+esc(label(o))+'</button>';
+  }).join('')+'</div>';
+  var fb='';
+  if(z.ans){
+    var good=z.ans===p.id;
+    fb='<div class="fb"><strong class="'+(good?'g':'r')+'">'+(good?'Goed!':'Niet helemaal.')+'</strong><span><em>'+esc(p.short)+'</em> — '+esc(p.nl)+'</span>'+info(p)+'<div class="row"><button class="btn" data-act="qnext" id="qnext">Volgende</button></div></div>';
+  }
+  return '<div class="stage">'+head+meta+'<p style="margin:0;font-family:var(--display);font-size:22px">Welke plant is dit?</p>'+pic+opts+fb+'</div>';
+}
+
+/* ---------- lightbox ---------- */
+var LB=null;
+function drawLb(){
+  var el=$('lb');
+  if(!LB){el.hidden=true;el.innerHTML='';return}
+  var p=BYID[LB.id];el.hidden=false;
+  el.innerHTML='<img src="'+p.ph[LB.i]+'" alt="'+esc(p.short)+'" data-act="lbclose">'+
+   '<button class="lbx c" data-act="lbclose" aria-label="Sluiten">×</button>'+
+   (p.ph.length>1?'<button class="lbx p" data-act="lbprev" aria-label="Vorige foto">‹</button><button class="lbx n" data-act="lbnext" aria-label="Volgende foto">›</button>':'')+
+   (LB.hide?'':'<div class="lbcap"><em>'+esc(p.short)+'</em> · '+esc(p.nl)+'</div>');
+}
+
+/* ---------- render ---------- */
+function render(){
+  drawTabs();drawFilters();
+  var h=S.view==='gids'?vGids():S.view==='flash'?vFlash():S.view==='quiz'?vQuiz():vFavs();
+  var y=window.scrollY;
+  $('out').innerHTML=h;
+  if(S.view!=='gids'&&S.view!=='favs'){window.scrollTo(0,y)}
+}
+document.addEventListener('click',function(e){
+  var t=e.target.closest('[data-act]');if(!t)return;
+  var a=t.dataset.act,f=S.fc,z=S.qz;
+  if(a==='tab'){S.view=t.dataset.v;if(S.view==='flash')f.built=false;render();return}
+  if(a==='col'){S.c=t.dataset.c;f.built=false;z.queue=[];z.cur=null;render();return}
+  if(a==='onlyfav'){S.fav=!S.fav;f.built=false;z.queue=[];z.cur=null;render();return}
+  if(a==='fav'){toggleFav(t.dataset.id);return}
+  if(a==='thumb'){var p=BYID[t.dataset.id],c=$('c-'+p.id);c.querySelector('.pic img').src=p.ph[+t.dataset.i];c.querySelector('.pic img').dataset.i=t.dataset.i;c.querySelectorAll('.thumb').forEach(function(b){b.setAttribute('aria-current',String(b===t))});return}
+  if(a==='zoom'){LB={id:t.dataset.id,i:+t.dataset.i};drawLb();return}
+  if(a==='qzoom'){LB={id:z.cur.id,i:+t.dataset.i,hide:!z.ans};drawLb();return}
+  if(a==='lbclose'){LB=null;drawLb();return}
+  if(a==='lbprev'||a==='lbnext'){var n=BYID[LB.id].ph.length;LB.i=(LB.i+(a==='lbnext'?1:n-1))%n;drawLb();return}
+  if(a==='fmode'){f.mode=t.dataset.m;f.rev=false;render();return}
+  if(a==='funk'){f.unknown=!f.unknown;buildDeck();render();return}
+  if(a==='fshuf'){buildDeck();render();return}
+  if(a==='fretry'){var bad=f.deck.filter(function(id){return !f.res[id]});f.deck=shuffle(bad);f.i=0;f.rev=false;f.ph=0;f.res={};f.done=false;render();return}
+  if(a==='fph'){f.ph=+t.dataset.i;render();return}
+  if(a==='flip'){f.rev=!f.rev;render();return}
+  if(a==='fprev'){if(f.i>0){f.i--;f.rev=false;f.ph=0;render()}return}
+  if(a==='fnext'){f.res[f.deck[f.i]]=false;fAdvance();return}
+  if(a==='fyes'||a==='fno'){var id=f.deck[f.i];f.res[id]=(a==='fyes');if(a==='fyes')known[id]=1;else delete known[id];lsSet('known',known);fAdvance();return}
+  if(a==='qmode'){z.mode=t.dataset.m;z.cur=null;render();return}
+  if(a==='ans'){if(z.ans)return;z.ans=t.dataset.id;z.total++;if(z.ans===z.cur.id){z.right++;z.streak++;known[z.cur.id]=1}else{z.streak=0;delete known[z.cur.id]}lsSet('known',known);render();var nb=$('qnext');if(nb)nb.focus();return}
+  if(a==='qnext'){nextQ();render();return}
+});
+document.addEventListener('input',function(e){if(e.target.id==='q'){S.q=e.target.value;$('out').innerHTML=vGids()}});
+document.addEventListener('keydown',function(e){
+  if(LB){if(e.key==='Escape'){LB=null;drawLb()}else if(e.key==='ArrowRight'||e.key==='ArrowLeft'){var n=BYID[LB.id].ph.length;LB.i=(LB.i+(e.key==='ArrowRight'?1:n-1))%n;drawLb()}return}
+  var tg=e.target,tag=tg.tagName;
+  if(tag==='INPUT'||tag==='BUTTON')return;
+  if(S.view==='flash'&&S.fc.deck.length&&!S.fc.done){
+    var f=S.fc;
+    if(e.key===' '||e.key==='Enter'){e.preventDefault();f.rev=!f.rev;render()}
+    else if(e.key==='ArrowRight'){if(f.rev){f.res[f.deck[f.i]]=false}fAdvance()}
+    else if(e.key==='ArrowLeft'&&f.i>0){f.i--;f.rev=false;f.ph=0;render()}
+  }
+});
+render();
+</script>
+</body>
+</html>
